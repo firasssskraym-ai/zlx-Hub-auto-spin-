@@ -1,0 +1,95 @@
+-- zlx Hub | Auto Spin (FAST + CLEAN)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+-- ===== CHARACTER SETUP =====
+local function setupCharacter(char)
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    local att = hrp:FindFirstChild("SpinAttachment")
+    if not att then
+        att = Instance.new("Attachment")
+        att.Name = "SpinAttachment"
+        att.Parent = hrp
+    end
+
+    local align = hrp:FindFirstChild("SpinAlign")
+    if not align then
+        align = Instance.new("AlignOrientation")
+        align.Name = "SpinAlign"
+        align.Attachment0 = att
+        align.Mode = Enum.OrientationAlignmentMode.OneAttachment
+        align.Responsiveness = 1000
+        align.MaxTorque = math.huge
+        align.Enabled = false
+        align.Parent = hrp
+    end
+
+    return align
+end
+
+local character = player.Character or player.CharacterAdded:Wait()
+local align = setupCharacter(character)
+
+player.CharacterAdded:Connect(function(char)
+    align = setupCharacter(char)
+end)
+
+-- ===== SETTINGS =====
+local AUTO = false
+local SPEED = 2500 -- MAXIMAL SCHNELL (stabil)
+
+-- ===== GUI =====
+local gui = Instance.new("ScreenGui")
+gui.Name = "zlx Hub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,280,0,160)
+main.Position = UDim2.new(0.5,-140,0.5,-80)
+main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
+
+local stroke = Instance.new("UIStroke", main)
+stroke.Color = Color3.fromRGB(255,140,0)
+stroke.Thickness = 2
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,45)
+title.BackgroundTransparency = 1
+title.Text = "zlx Hub"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 26
+title.TextColor3 = Color3.fromRGB(255,140,0)
+
+local btn = Instance.new("TextButton", main)
+btn.Size = UDim2.new(0.8,0,0,50)
+btn.Position = UDim2.new(0.1,0,0,70)
+btn.Text = "AUTO SPIN : OFF"
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 18
+btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+btn.TextColor3 = Color3.fromRGB(255,255,255)
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+
+btn.MouseButton1Click:Connect(function()
+    AUTO = not AUTO
+    btn.Text = AUTO and "AUTO SPIN : ON" or "AUTO SPIN : OFF"
+    btn.TextColor3 = AUTO and Color3.fromRGB(255,140,0) or Color3.fromRGB(255,255,255)
+    if align then align.Enabled = AUTO end
+end)
+
+-- ===== SPIN LOOP =====
+local angle = 0
+RunService.RenderStepped:Connect(function(dt)
+    if AUTO and align then
+        angle += SPEED * dt
+        align.CFrame = CFrame.Angles(0, math.rad(angle), 0)
+    end
+end)
